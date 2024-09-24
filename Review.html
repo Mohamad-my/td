@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review and Rating</title>
+    <link rel="website icon" type="png"  href="img/4660619.png">
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+       
+
+        .navbar .navbar-brand,
+        .navbar .nav-link,
+        .navbar .navbar-toggler-icon {
+            color: #fff;
+        }
+
+        .navbar .navbar-brand:hover,
+        .navbar .nav-link:hover {
+            color: #f8f9fa;
+        }
+
+        .navbar .navbar-toggler {
+            border-color: #fff;
+        }
+
+        .star-rating {
+            direction: rtl;
+            display: inline-flex;
+            justify-content: flex-end;
+        }
+
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 30px;
+            color: #ddd;
+            cursor: pointer;
+        }
+
+        .star-rating input:checked ~ label {
+            color: #f5b301;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #f5b301;
+        }
+
+        .reviews-container {
+            margin-top: 30px;
+        }
+
+        .review-card {
+            margin-bottom: 20px;
+        }
+
+        .review-card .card-header {
+            font-weight: bold;
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Medical Devices
+                <img src="img/2139.jpg_wh860.jpg" alt="Medical Devices Logo" width="100" height="45">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="product.html">Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="About_us.html">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Review</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="my-4 text-center">Submit Your Review</h1>
+        <form id="reviewForm">
+            <div class="form-group">
+                <label for="reviewerName">Your Name</label>
+                <input type="text" id="reviewerName" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="reviewText">Your Review</label>
+                <textarea id="reviewText" class="form-control" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="rating">Rating</label>
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5"><label for="star5">&#9733;</label>
+                    <input type="radio" id="star4" name="rating" value="4"><label for="star4">&#9733;</label>
+                    <input type="radio" id="star3" name="rating" value="3"><label for="star3">&#9733;</label>
+                    <input type="radio" id="star2" name="rating" value="2"><label for="star2">&#9733;</label>
+                    <input type="radio" id="star1" name="rating" value="1"><label for="star1">&#9733;</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Submit Review</button>
+        </form>
+
+        <div class="reviews-container" id="reviewsContainer">
+            <h2 class="mt-4">Reviews</h2>
+            <!-- Reviews will be displayed here -->
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- JavaScript to handle review form and display -->
+    <script>
+        
+
+        
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('reviewForm');
+        const reviewsContainer = document.getElementById('reviewsContainer');
+
+        // Function to display the saved reviews in cards
+        function displayReviews() {
+            const reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+            reviewsContainer.innerHTML = '<h2 class="mt-4">Reviews</h2>';
+            reviews.forEach(review => {
+                // Show only positive reviews (rating 3 or above)
+                if (review.rating >= 2) {
+                    const reviewCard = document.createElement('div');
+                    reviewCard.classList.add('card', 'review-card');
+                    reviewCard.innerHTML = `
+                        <div class="card-header">
+                            ${review.name}
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">${review.text}</p>
+                            <div>Rating: ${'&#9733;'.repeat(review.rating)}${'&#9734;'.repeat(5 - review.rating)}</div>
+                        </div>
+                    `;
+                    reviewsContainer.appendChild(reviewCard);
+                }
+            });
+        }
+
+        // Function to handle the form submission
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const reviewerName = document.getElementById('reviewerName').value;
+            const reviewText = document.getElementById('reviewText').value;
+            const ratingElement = document.querySelector('input[name="rating"]:checked');
+            const rating = ratingElement ? ratingElement.value : null;
+
+            if (!rating) {
+                alert('Please select a rating');
+                return;
+            }
+
+            // Create a review object
+            const review = {
+                name: reviewerName,
+                text: reviewText,
+                rating: parseInt(rating)
+            };
+
+            // Save review to localStorage
+            const reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+            reviews.push(review);
+            localStorage.setItem('reviews', JSON.stringify(reviews));
+
+            // Clear form fields
+            form.reset();
+
+            // Update the review list without removing the old ones
+            displayReviews();
+        });
+
+        // Display reviews when the page loads
+        displayReviews();
+    });
+</script>
+
+
+   
+
+</body>
+</html>

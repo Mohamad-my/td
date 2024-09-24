@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Form</title>
+    <link rel="website icon" type="png"  href="img/4660619.png">
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+        .form-control:invalid {
+            border-color: #dc3545;
+        }
+        .form-control:valid {
+            border-color: #28a745;
+        }
+        .invalid-feedback {
+            display: none;
+        }
+        .is-invalid .invalid-feedback {
+            display: block;
+        }
+        .total-price {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4 text-center">Order Form</h1>
+        <form id="orderForm">
+            <!-- Form fields remain the same -->
+            <div class="form-group">
+                <div id="datetime"></div><br><br>
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+                <div class="invalid-feedback">Please enter a valid email address.</div>
+            </div>
+            <div class="form-group">
+                <label for="address">Delivery Address</label>
+                <input type="text" id="address" name="address" class="form-control" required>
+                <div class="invalid-feedback">Please enter a delivery address.</div>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" class="form-control" required>
+                <div class="invalid-feedback">Please enter a valid phone number.</div>
+            </div>
+            <div class="form-group">
+                <label for="city">City</label>
+                <select id="city" name="city" class="form-control" required>
+                    <option value="">Select a city</option>
+                    <option value="Amman">Amman</option>
+                    <option value="Irbid">Irbid</option>
+                    <option value="Zarqa">Zarqa</option>
+                    <option value="Karak">Karak</option>
+                </select>
+                <div class="invalid-feedback">Please select a city.</div>
+            </div>
+            <div class="form-group">
+                <label for="delivery">Select Delivery Area</label>
+                <select id="delivery" name="delivery" class="form-control" required>
+                    <option value="">Select an area</option>
+                    <option value="local">Local Area ($20)</option>
+                    <option value="regional">Regional Area ($50)</option>
+                    <option value="national">National Area ($100)</option>
+                </select>
+                <div class="invalid-feedback">Please select a delivery area.</div>
+            </div>
+
+            <!-- Display cart items here -->
+            <div id="cartItems" class="mt-4"></div>
+
+            <div class="total-price" id="totalPrice">
+                Total Price: $0
+            </div>
+            <button type="submit" class="btn btn-primary btn-block mt-4">Submit Order</button>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Include EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            emailjs.init('T-Y30ULyMIRi7nzRg'); // Initialize EmailJS with your public key
+
+            const form = document.getElementById('orderForm');
+            const totalPriceElement = document.getElementById('totalPrice');
+            const cartItemsElement = document.getElementById('cartItems');
+
+            // Function to retrieve cart items from localStorage
+            function getCartItems() {
+                const cart = JSON.parse(localStorage.getItem('cartItems')) || [];
+                return cart;
+            }
+
+            // Function to display cart items
+            function displayCartItems(cart) {
+                cartItemsElement.innerHTML = '<h4>Items in your basket:</h4>';
+                let totalCost = 0;
+
+                if (cart.length === 0) {
+                    cartItemsElement.innerHTML += '<p>Your cart is empty.</p>';
+                } else {
+                    cart.forEach(item => {
+                        const itemHTML = `<p>${item.name} - $${item.price}</p>`;
+                        cartItemsElement.innerHTML += itemHTML;
+                        totalCost += item.price; // Accumulate total cost of items
+                    });
+                }
+
+                return totalCost;
+            }
+
+            // Function to get delivery cost
+            function getDeliveryCost(delivery) {
+                switch (delivery) {
+                    case 'local':
+                        return 20;
+                    case 'regional':
+                        return 50;
+                    case 'national':
+                        return 100;
+                    default:
+                        return 0;
+                }
+            }
+
+            // Function to get city adjustment
+            function getCityAdjustment(city) {
+                switch (city) {
+                    case 'Amman':
+                        return 2;
+                    case 'Irbid':
+                        return 4;
+                    case 'Zarqa':
+                        return 3;
+                    case 'Karak':
+                        return 5;
+                    default:
+                        return 0;
+                }
+            }
+
+            // Function to update the total price based on delivery area and city
+            function updateTotalPrice(cartTotal) {
+                const city = form.city.value;
+                const delivery = form.delivery.value;
+                const deliveryCost = getDeliveryCost(delivery);
+                const cityAdjustment = getCityAdjustment(city);
+
+                const totalCost = cartTotal + deliveryCost + cityAdjustment;
+                totalPriceElement.textContent = `Total Price: $${totalCost}`;
+
+                return totalCost;
+            }
+
+            // Initial load of cart items and total price
+            const cart = getCartItems();
+            const cartTotal = displayCartItems(cart);
+            updateTotalPrice(cartTotal);
+
+            // Update total price when delivery or city changes
+            form.delivery.addEventListener('change', function() {
+                const cartTotal = displayCartItems(getCartItems());
+                updateTotalPrice(cartTotal);
+            });
+
+            form.city.addEventListener('change', function() {
+                const cartTotal = displayCartItems(getCartItems());
+                updateTotalPrice(cartTotal);
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                // Validate form fields
+                if (!form.checkValidity()) {
+                    return;
+                }
+
+                const email = form.email.value;
+                const address = form.address.value;
+                const phone = form.phone.value;
+                const city = form.city.value;
+                const delivery = form.delivery.value;
+
+                const cartItems = getCartItems();
+                const cartTotal = displayCartItems(cartItems);
+                const totalCost = updateTotalPrice(cartTotal);
+
+                const templateParams = {
+                    email: email,
+                    address: address,
+                    phone: phone,
+                    city: city,
+                    delivery: delivery,
+                    totalCost: totalCost, // Ensure this is included
+                    cartItems: cartItems.map(item => `${item.name} - $${item.price}`).join(', ')
+                };
+
+                // Send email using EmailJS
+                emailjs.send('service_1xmkh5a', 'template_a8etrhd', templateParams)
+                    .then(function(response) {
+                        alert('Order submitted successfully!');
+                        form.reset();
+                        totalPriceElement.textContent = 'Total Price: $0';
+                        cartItemsElement.innerHTML = '';
+                        localStorage.removeItem('cartItems'); // Clear the cart after order submission
+                    }, function(error) {
+                        alert('Failed to submit order. Please try again.');
+                        console.error('Error:', error);
+                    });
+            });
+        });
+
+        function updateDateTime() {
+    var dateTimeElement = document.getElementById("datetime");
+    var now = new Date();
+    var dateTimeString = "Current Date and Time: " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
+    dateTimeElement.textContent = dateTimeString;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+});
+    </script>
+</body>
+</html>
